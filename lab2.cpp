@@ -7,6 +7,7 @@
 #include <string>
 #include <iomanip>
 #include <stdlib.h>
+#include <sstream>
 #include "queue.h"
 #include "Processor.h"
 
@@ -73,15 +74,8 @@ int main(int argc, const char *argv[])
             { processQueue.push(inputQueue.pop()); }
         }
 
-        //try to assign jobs to processor, baised on who is in
-        //front of the processQueue
-        if(!processQueue.isEmpty()){
-            if(!pPool.hasQueue()) {timeOffset = time;}
-            if(pPool.add(processQueue.peek())){ processQueue.pop();}
-        }
-
-
         //Here is the scedule algo position
+        Process current; //only used for SRTF
         switch (schedulerIn)
         {
           case FCFS:
@@ -91,6 +85,15 @@ int main(int argc, const char *argv[])
               break;
           case SRTF:
               SceduleType = " SRTF ";
+              //replace current process into the processQueue
+              //(This does not mean that there is a 
+              //contextSwitch, we will test for that latter
+              if(pPool.hasQueue()) 
+              {
+                  current = pPool.contextSwitchPop(); //track what the current process was.
+                  processQueue.push(current);
+              }
+              else current.ID = -1; //for first loop
               //Find the shortet job and bring it to the
               //of the processQueue
               if(!processQueue.isEmpty())
@@ -99,7 +102,7 @@ int main(int argc, const char *argv[])
                 while(!processQueue.isEmpty()) 
                 { 
                     Process tempb = processQueue.pop();
-                    if(tempa.burstTime <= tempb.burstTime)
+                    if(tempa.burstLeft <= tempb.burstLeft)
                     { tempResults.push(tempb); }
                     else
                     { 
@@ -107,13 +110,23 @@ int main(int argc, const char *argv[])
                         tempa = tempb;
                     }
                 }
+                //if the shortet job is not the current job
+                //then there is a contextSwitch cost
+                if(tempa.ID != current.ID) 
+                { contextSwitch(time); }
+                else
+                { tempa.noContextSwitch--; } 
+                
                 processQueue.push(tempa);
+                //replace the non-shortet jobs back into processQueue
                 while(!tempResults.isEmpty()) {processQueue.push(tempResults.pop());}
               }
 
               break;
           case RR:
-              SceduleType = " RR   ";
+              std::stringstream ss; 
+              ss << quantumSize;
+              SceduleType = "RR Quant:" + ss.str();
               //the timeOffset is set when a job enters the processQueue
               //(This does not model multiple processors well)
               //when the time-delta is at the quantumSize, then rotate
@@ -125,8 +138,16 @@ int main(int argc, const char *argv[])
               }
               break;
         }
-        //This is the end, increment time and do processing
+        //This is the end of scheduleing 
 
+        //try to assign jobs to processor, baised on who is in
+        //front of the processQueue
+        if(!processQueue.isEmpty()){
+            if(!pPool.hasQueue()) {timeOffset = time;}
+            if(pPool.add(processQueue.peek())){ processQueue.pop();}
+        }
+
+        //incremens the time and does the Processing
         ++time;
         tempResults = pPool.doProcessing(time);
 
