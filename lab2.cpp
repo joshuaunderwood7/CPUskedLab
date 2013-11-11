@@ -131,7 +131,7 @@ int main(int argc, const char *argv[])
               //(This does not model multiple processors well)
               //when the time-delta is at the quantumSize, then rotate
               //jobs
-              if((time-timeOffset >= quantumSize))
+              if((time-timeOffset >= quantumSize) && pPool.hasQueue())
               {
                     processQueue.push(pPool.contextSwitchPop());
                     contextSwitch(time);
@@ -144,7 +144,7 @@ int main(int argc, const char *argv[])
         //front of the processQueue
         if(!processQueue.isEmpty()){
             if(!pPool.hasQueue()) {timeOffset = time;}
-            if(pPool.add(processQueue.peek())){ processQueue.pop();}
+            if(pPool.add(processQueue.peek())){ processQueue.pop(); }
         }
 
         //incremens the time and does the Processing
@@ -152,7 +152,7 @@ int main(int argc, const char *argv[])
         tempResults = pPool.doProcessing(time);
 
         //this returns any completed job to the resultsQueue for display
-        while(!tempResults.isEmpty()) {resultsQueue.push(tempResults.pop());}
+        while(!tempResults.isEmpty()) {resultsQueue.push(tempResults.pop()); }
 
         //this adds waitTime to the jobs in the processQueue,
         //and increments the responseTime counter if job has

@@ -54,7 +54,7 @@ class ProcessorPool
         {
             Process temp = toProcess.pop();
             --temp.burstLeft;
-            if(temp.burstLeft == 0) 
+            if(temp.burstLeft <= 0) 
             {
                temp.finishTime = time; 
                temp.turnAround = time - temp.arrivalTime;
@@ -66,6 +66,8 @@ class ProcessorPool
         { toProcess.push(alreadyProcessed.pop()); }
         return finished;
     }
+
+    Process peek(void) {return toProcess.peek(); } // for debugging only
 
     Process contextSwitchPop(void) 
     { 
