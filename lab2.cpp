@@ -16,6 +16,7 @@ using namespace std;
 //all time is in ms
 const int UND_CONTEXT_SWITCH_COST = 5;
 const int UND_NUMBER_OF_PROCESSORS = 1;
+const int MILLISECOND_MOD = 10;
 enum sceduler {FCFS, SRTF, RR};
 
 void pprintProcess(Process);
@@ -43,7 +44,7 @@ int main(int argc, const char *argv[])
     schedulerIn = atoi(argv[2]);
     if(argc >=4 )
     {
-        quantumSize = atoi(argv[3]);
+        quantumSize = MILLISECOND_MOD * atoi(argv[3]);
     }
 
     int time = 0;
@@ -58,7 +59,9 @@ int main(int argc, const char *argv[])
             && inputFile >> burstTime
             && inputFile.good())
         {
-            inputQueue.push(Process(ID, arrivalTime, burstTime));
+            inputQueue.push(Process(ID, 
+                                   (MILLISECOND_MOD * arrivalTime), 
+                                   (MILLISECOND_MOD * burstTime)));
         }
         //inputQueue.push(Process(ID, arrivalTime, burstTime));
         inputFile.close();
@@ -125,7 +128,7 @@ int main(int argc, const char *argv[])
               break;
           case RR:
               std::stringstream ss; 
-              ss << quantumSize;
+              ss << quantumSize/MILLISECOND_MOD;
               SceduleType = "RR Quant:" + ss.str();
               //the timeOffset is set when a job enters the processQueue
               //(This does not model multiple processors well)
@@ -190,9 +193,9 @@ int main(int argc, const char *argv[])
         totalContextSwitchs += temp.noContextSwitch;
     }
 
-    cout << "Average CPU burst time = " << avgBurst/counter << " ms,   Average waiting time = " 
-            << avgWait/counter << " ms" << endl 
-         << "Average turn around time = " << avgTurnAround/counter << " ms,  Average response time = " 
+    cout << "Average CPU burst time = " << avgBurst/counter/MILLISECOND_MOD << " ms,   Average waiting time = " 
+            << avgWait/counter/MILLISECOND_MOD << " ms" << endl 
+         << "Average turn around time = " << avgTurnAround/counter/MILLISECOND_MOD << " ms,  Average response time = " 
             << avgResponseTime/counter << " ms" << endl 
          << "Total No. of Context Switching Performed = " << totalContextSwitchs << endl; 
 
@@ -203,12 +206,12 @@ int main(int argc, const char *argv[])
 void pprintProcess(Process input)
 {
     cout << "|" << std::setw(9) << input.ID << "|"
-         << std::setw(10) << input.arrivalTime << "|"
-         << std::setw(10) << input.burstTime << "|"
-         << std::setw(10) << input.finishTime << "|" 
-         << std::setw(10) << input.waitTime << "|" 
-         << std::setw(10) << input.turnAround << "|" 
-         << std::setw(10) << input.responseTime << "|" 
+         << std::setw(10) << input.arrivalTime/MILLISECOND_MOD << "|"
+         << std::setw(10) << input.burstTime/MILLISECOND_MOD << "|"
+         << std::setw(10) << input.finishTime/MILLISECOND_MOD << "|" 
+         << std::setw(10) << input.waitTime/MILLISECOND_MOD << "|" 
+         << std::setw(10) << input.turnAround/MILLISECOND_MOD << "|" 
+         << std::setw(10) << input.responseTime/MILLISECOND_MOD << "|" 
          << std::setw(10) << input.noContextSwitch << "|" 
          << endl;
     cout << "+---------+----------+----------+----------+----------+----------+----------+----------+" << endl;
